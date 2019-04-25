@@ -45,6 +45,11 @@ static std::string reason;
 
 usage parse_arguments(int& argc, char* argv[]) {
     usage arguments;
+    if (argc % 2 != 0) {
+        ok = false;
+        reason = "Wrong numbers of args";
+        return arguments;
+    }
     arguments.path = argv[1];
     for (int i = 2; i < argc; i += 2) {
         std::string option(argv[i]);
@@ -165,7 +170,8 @@ void execute(std::string& filepath, std::vector<std::string>& result) {
     }
     if (pid == 0) {
         std::vector<char *> args;
-        args.reserve(result.size());
+        args.reserve(result.size() + 1);
+        args.push_back(&filepath[0]);
         for (auto& file : result) {
             args.push_back(&(file[0]));
         }
@@ -198,13 +204,14 @@ void execute(std::string& filepath, std::vector<std::string>& result) {
 }
 
 int main(int argc, char* argv[]) {
-    std::cout << help << std::endl;
     if (argc <= 1) {
         std::cout << "Wrong usage, see help" << std::endl;
+        std::cout << help << std::endl;
     }
     usage arguments = parse_arguments(argc, argv);
     if (!ok) {
-        std::cerr << reason << ", see help" << std::endl;
+        std::cout << reason << ", see help" << std::endl;
+        std::cout << help << std::endl;
         exit(EXIT_FAILURE);
     }
 

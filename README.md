@@ -12,3 +12,13 @@
 - Поддерживать комбинацию аргументов. Например хочется найти все файлы с размером больше 1GB и скормить их утилите /usr/bin/sha1sum.
 - Выполнять поиск рекурсивно, в том числе во всех вложенных директориях.
 - Сильные духом призываются к выполнению задания с использованием системного вызова getdents(2). Остальные могут использовать readdir и opendir для чтения содержимого директории.
+
+Usage:
+	path [options] - find files by path with options.
+
+	Options:
+		-inum inum - inode number;
+		-name name - file name;
+		-size [-=+]size - file's size(less, equal, more);
+		-nlinks num - file's hardlinks;
+		-exec path - file to execute;

@@ -162,44 +162,43 @@ void find(const usage& arguments, std::vector<std::string>& result) {
 }
 
 void execute(std::string& filepath, std::vector<std::string>& result) {
-    int status;
-    pid_t pid = fork();
-    if (pid == -1) {
-        perror("fork");
-        exit(EXIT_FAILURE);
-    }
-    if (pid == 0) {
-        std::vector<char *> args;
-        args.reserve(result.size() + 1);
-        args.push_back(&filepath[0]);
-        for (auto& file : result) {
-            args.push_back(&(file[0]));
-        }
-        args.emplace_back(nullptr);
-
-        int err = execv(filepath.data(), args.data());
-        if (err == -1) {
-            perror("execv");
+    for (auto& file : result) {
+        int status;
+        pid_t pid = fork();
+        if (pid == -1) {
+            perror("fork");
             exit(EXIT_FAILURE);
         }
-    } else {
-        do {
-            pid_t wait_pid = waitpid(pid, &status, WUNTRACED | WCONTINUED);
-            if (wait_pid == -1) {
-                perror("waitpid");
+        if (pid == 0) {
+            std::vector<char *> args;
+            args.push_back(&filepath[0]);
+            args.push_back(&(file[0]));
+            args.emplace_back(nullptr);
+
+            int err = execv(filepath.data(), args.data());
+            if (err == -1) {
+                perror("execv");
                 exit(EXIT_FAILURE);
             }
+        } else {
+            do {
+                pid_t wait_pid = waitpid(pid, &status, WUNTRACED | WCONTINUED);
+                if (wait_pid == -1) {
+                    perror("waitpid");
+                    exit(EXIT_FAILURE);
+                }
 
-            if (WIFEXITED(status)) {
-                printf("Normal exited, status = %d\n", WEXITSTATUS(status));
-            } else if (WIFSIGNALED(status)) {
-                printf("Was killed by signal %d\n", WTERMSIG(status));
-            } else if (WIFSTOPPED(status)) {
-                printf("Was stopped by signal %d\n", WSTOPSIG(status));
-            } else if (WIFCONTINUED(status)) {
-                printf("Was continued\n");
-            }
-        } while (!WIFEXITED(status) && !WIFSIGNALED(status));
+                if (WIFEXITED(status)) {
+                    printf("Normal exited, status = %d\n", WEXITSTATUS(status));
+                } else if (WIFSIGNALED(status)) {
+                    printf("Was killed by signal %d\n", WTERMSIG(status));
+                } else if (WIFSTOPPED(status)) {
+                    printf("Was stopped by signal %d\n", WSTOPSIG(status));
+                } else if (WIFCONTINUED(status)) {
+                    printf("Was continued\n");
+                }
+            } while (!WIFEXITED(status) && !WIFSIGNALED(status));
+        }
     }
 }
 
